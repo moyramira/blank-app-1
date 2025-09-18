@@ -4,7 +4,7 @@ from io import BytesIO
 
 st.set_page_config(page_title="Análise Dental", layout="wide")
 
-st.title("📊 Análise de Fatura x Folha - Bradesco Dental")
+st.title("📊 Análise de Fatura x Folha")
 
 uploaded_file = st.file_uploader("Envie o arquivo Excel (.xlsx)", type=["xlsx"])
 
