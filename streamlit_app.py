@@ -2,16 +2,18 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-    # Carregar as abas
-    fatura_df = pd.read_excel(uploaded_file, sheet_name="FATURA", skiprows=1)
-    folha_df = pd.read_excel(uploaded_file, sheet_name="FOLHA")
+st.set_page_config(page_title="Análise Dental", layout="wide")
 
-    # Verificar se colunas essenciais existem
-    if "CPF" not in fatura_df.columns or "TITULAR" not in fatura_df.columns or "PARTE DO SEGURADO" not in fatura_df.columns:
-        st.error("A aba 'FATURA' está com colunas incorretas ou ausentes.")
-    elif "CPF" not in folha_df.columns or "Nome Funcionário" not in folha_df.columns or "Valor Total" not in folha_df.columns:
-        st.error("A aba 'FOLHA' está com colunas incorretas ou ausentes.")
-    else:
+st.title("📊 Comparação Fatura x Folha")
+
+uploaded_file = st.file_uploader("📁 Envie o arquivo Excel (.xlsx)", type=["xlsx"])
+
+if uploaded_file:
+    try:
+        # Carregar as abas
+        fatura_df = pd.read_excel(uploaded_file, sheet_name="FATURA", skiprows=1)
+        folha_df = pd.read_excel(uploaded_file, sheet_name="FOLHA")
+
         # Padronizar nomes
         fatura_df.rename(columns={
             "CPF": "CPF",
@@ -42,12 +44,16 @@ from io import BytesIO
 
         comparacao_df["Valor_Folha"] = comparacao_df["Valor_Folha"].fillna(0)
         comparacao_df["Valor_Fatura"] = comparacao_df["Valor_Fatura"].fillna(0)
+       
+        # Calcular diferença
         comparacao_df["Diferença"] = comparacao_df["Valor_Fatura"] - comparacao_df["Valor_Folha"]
 
+        # Reorganizar colunas
         comparacao_df = comparacao_df[["CPF", "Nome", "Titular", "Valor_Fatura", "Valor_Folha", "Diferença"]]
 
-        # 🔍 Remover registros com diferença zero
+        # Remover registros com diferença zero
         comparacao_df = comparacao_df[comparacao_df["Diferença"] != 0]
+
 
         # Exibir resultados
         st.subheader("📌 Dinâmica Fatura")
@@ -72,3 +78,8 @@ from io import BytesIO
             file_name="DENTAL_ANALISADO.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
+    except Exception as e:
+        st.error(f"❌ Erro ao processar o arquivo: {e}")
+else:
+    st.info("Por favor, envie um arquivo Excel com as abas 'FATURA' e 'FOLHA'.")
