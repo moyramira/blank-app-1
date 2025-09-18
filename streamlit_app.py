@@ -44,9 +44,16 @@ if uploaded_file:
 
         comparacao_df["Valor_Folha"] = comparacao_df["Valor_Folha"].fillna(0)
         comparacao_df["Valor_Fatura"] = comparacao_df["Valor_Fatura"].fillna(0)
+       
+        # Calcular diferença
         comparacao_df["Diferença"] = comparacao_df["Valor_Fatura"] - comparacao_df["Valor_Folha"]
 
+        # Reorganizar colunas
         comparacao_df = comparacao_df[["CPF", "Nome", "Titular", "Valor_Fatura", "Valor_Folha", "Diferença"]]
+
+        # Remover registros com diferença zero
+        comparacao_df = comparacao_df[comparacao_df["Diferença"] != 0]
+
 
         # Exibir resultados
         st.subheader("📌 Dinâmica Fatura")
