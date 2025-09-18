@@ -4,9 +4,9 @@ from io import BytesIO
 
 st.set_page_config(page_title="Análise Dental", layout="wide")
 
-st.title("📊 Análise de Fatura x Folha")
+st.title("📊 Comparação Fatura x Folha - Bradesco Dental")
 
-uploaded_file = st.file_uploader("Envie o arquivo Excel (.xlsx)", type=["xlsx"])
+uploaded_file = st.file_uploader("📁 Envie o arquivo Excel (.xlsx)", type=["xlsx"])
 
 if uploaded_file:
     try:
@@ -73,4 +73,6 @@ if uploaded_file:
         )
 
     except Exception as e:
-        st.error(f"Erro ao processar o arquivo: {e}")
+        st.error(f"❌ Erro ao processar o arquivo: {e}")
+else:
+    st.info("Por favor, envie um arquivo Excel com as abas 'FATURA' e 'FOLHA'.")
