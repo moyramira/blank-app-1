@@ -6,74 +6,86 @@ import unicodedata
 st.set_page_config(page_title="Análise Dental", layout="wide")
 st.title("📊 Comparação Fatura x Folha")
 
-# Função para normalizar nomes de colunas
+# Função para normalizar texto
 def normalizar(texto):
     if pd.isna(texto):
         return ""
     texto = str(texto).strip().upper()
     texto = unicodedata.normalize("NFKD", texto).encode("ASCII", "ignore").decode("ASCII")
-    texto = " ".join(texto.split())  # remove espaços duplicados
+    texto = " ".join(texto.split())
     return texto
 
 # Função para mapear colunas por similaridade
 def mapear_colunas(colunas, candidatos):
-    for col in colunas:
-        col_norm = normalizar(col)
-        for nome_padrao, variações in candidatos.items():
-            if col_norm in [normalizar(v) for v in variações]:
-                return nome_padrao, col
-    return None, None
+    mapeadas = {}
+    for chave, variações in candidatos.items():
+        for col in colunas:
+            if normalizar(col) in [normalizar(v) for v in variações]:
+                mapeadas[chave] = col
+                break
+    return mapeadas
 
-# Dicionários de variações aceitas
+# Variações aceitas
 variacoes_fatura = {
     "CPF": ["CPF"],
     "Titular": ["TITULAR", "BENEFICIARIO", "BENEFICIÁRIO", "NOME"],
-    "Valor": ["VALOR", "PARTE DO SEGURADO", "VALOR SEGURADO"]
+    "Valor": ["VALOR", "PARTE DO SEGURADO", "COPARTICIPACAO", "COPARTICIPAÇÃO", "VALOR SEGURADO"]
 }
 
 variacoes_folha = {
     "CPF": ["CPF"],
     "Nome": ["NOME FUNCIONARIO", "NOME FUNCIONÁRIO", "FUNCIONARIO", "FUNCIONÁRIO", "NOME"],
-    "Valor": ["VALOR TOTAL", "VALOR"]
+    "Valor": ["VALOR TOTAL", "VALOR", "DESCONTO", "DESCONTOS"]
 }
 
 uploaded_file = st.file_uploader("📁 Envie o arquivo Excel (.xlsx)", type=["xlsx"])
 
 if uploaded_file:
     try:
-        # Carregar abas
-        fatura_df = pd.read_excel(uploaded_file, sheet_name="FATURA", skiprows=1)
+        # Tentar ler FATURA com header=None
+        fatura_raw = pd.read_excel(uploaded_file, sheet_name="FATURA", header=None)
         folha_df = pd.read_excel(uploaded_file, sheet_name="FOLHA")
+
+        # Detectar linha de cabeçalho na FATURA
+        for i in range(5):
+            tentativa = fatura_raw.iloc[i]
+            colunas_norm = [normalizar(c) for c in tentativa]
+            if any("CPF" in c for c in colunas_norm):
+                fatura_df = pd.read_excel(uploaded_file, sheet_name="FATURA", skiprows=i)
+                break
+        else:
+            st.error("❌ Não foi possível detectar o cabeçalho da aba 'FATURA'.")
+            st.stop()
 
         # Normalizar colunas
         fatura_df.columns = [normalizar(c) for c in fatura_df.columns]
         folha_df.columns = [normalizar(c) for c in folha_df.columns]
 
-        # Mapear colunas FATURA
-        colunas_fatura = {}
-        for chave in variacoes_fatura:
-            _, col = mapear_colunas(fatura_df.columns, {chave: variacoes_fatura[chave]})
-            if col:
-                colunas_fatura[chave] = col
+        # Mapear colunas
+        colunas_fatura = mapear_colunas(fatura_df.columns, variacoes_fatura)
+        colunas_folha = mapear_colunas(folha_df.columns, variacoes_folha)
+
         if len(colunas_fatura) < 3:
             st.error("❌ A aba 'FATURA' está com colunas ausentes ou incorretas.")
             st.write("Colunas encontradas:", fatura_df.columns.tolist())
             st.stop()
 
-        # Mapear colunas FOLHA
-        colunas_folha = {}
-        for chave in variacoes_folha:
-            _, col = mapear_colunas(folha_df.columns, {chave: variacoes_folha[chave]})
-            if col:
-                colunas_folha[chave] = col
         if len(colunas_folha) < 3:
             st.error("❌ A aba 'FOLHA' está com colunas ausentes ou incorretas.")
             st.write("Colunas encontradas:", folha_df.columns.tolist())
             st.stop()
 
-        # Renomear para padrão
-        fatura_df = fatura_df.rename(columns={colunas_fatura["CPF"]: "CPF", colunas_fatura["Titular"]: "Titular", colunas_fatura["Valor"]: "Valor"})
-        folha_df = folha_df.rename(columns={colunas_folha["CPF"]: "CPF", colunas_folha["Nome"]: "Nome", colunas_folha["Valor"]: "Valor"})
+        # Renomear colunas
+        fatura_df = fatura_df.rename(columns={
+            colunas_fatura["CPF"]: "CPF",
+            colunas_fatura["Titular"]: "Titular",
+            colunas_fatura["Valor"]: "Valor"
+        })
+        folha_df = folha_df.rename(columns={
+            colunas_folha["CPF"]: "CPF",
+            colunas_folha["Nome"]: "Nome",
+            colunas_folha["Valor"]: "Valor"
+        })
 
         # Limpar CPF e converter valores
         fatura_df["CPF"] = fatura_df["CPF"].astype(str).str.replace(r"\D", "", regex=True)
