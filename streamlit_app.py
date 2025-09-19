@@ -29,7 +29,7 @@ def mapear_colunas(colunas, candidatos):
 variacoes_fatura = {
     "CPF": ["CPF"],
     "Titular": ["TITULAR", "BENEFICIARIO", "BENEFICIÁRIO", "NOME"],
-    "Valor": ["VALOR", "PARTE DO SEGURADO", "COPARTICIPACAO", "COPARTICIPAÇÃO", "VALOR SEGURADO"]
+    "Valor": ["PARTE DO SEGURADO", "IOF", "VALOR SEGURADO"]
 }
 
 variacoes_folha = {
