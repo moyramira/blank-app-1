@@ -1,4 +1,4 @@
-import streamlit as st
+Rimport streamlit as st
 import pandas as pd
 from io import BytesIO
 import unicodedata
@@ -29,7 +29,7 @@ def mapear_colunas(colunas, candidatos):
 variacoes_fatura = {
     "CPF": ["CPF"],
     "Titular": ["TITULAR", "BENEFICIARIO", "BENEFICIÁRIO", "NOME"],
-    "Valor": ["PARTE DO SEGURADO", "IOF", "VALOR SEGURADO", "VALOR LANÇAMENTO", "VALOR LANCAMENTO", "VALOR COBRADO"]
+    "Valor": ["PARTE DO SEGURADO", "IOF", "VALOR SEGURADO", "VALOR LANÇAMENTO", "VALOR LANCAMENTO", "R$ VALOR COBRADO"]
 }
 
 variacoes_folha = {
