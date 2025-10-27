@@ -130,7 +130,7 @@ if uploaded_file:
         st.download_button(
             label="📥 Baixar arquivo analisado",
             data=output.getvalue(),
-            file_name="DENTAL_ANALISADO.xlsx",
+            file_name="DIFERENÇA_FINAL.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 
